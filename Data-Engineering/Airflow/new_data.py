@@ -3,13 +3,14 @@ Airflow DAG to download a file from SFTP to local filesystem using a custom conn
 
 - Connection ID: sftp_custom
 - Remote file: /data/upload/sample.txt
-- Local file: /tmp/sample.txt
+- Local file: /mnt/shared/data/sample.txt
 """
 
 from airflow import DAG
 from airflow.providers.sftp.hooks.sftp import SFTPHook
 from airflow.operators.python import PythonOperator
 from datetime import datetime
+import os
 
 # Airflow SFTP connection ID
 FTP_CONN_ID = 'sftp_custom'
@@ -21,21 +22,23 @@ LOCAL_PATH = '/mnt/shared/data/sample.txt'
 
 def download_file_from_sftp():
     """
-    Downloads a file from SFTP to local path using username/password authentication.
+    Download a file from SFTP server using Paramiko SFTPClient.
+    Compatible with Airflow 2.5+.
     """
-    sftp_hook = SFTPHook(ftp_conn_id=FTP_CONN_ID)
-    
-    # Option 1: Using SFTPHook method
-    sftp_hook.get_file(
-        remote_full_path=REMOTE_PATH,
-        local_full_path=LOCAL_PATH
-    )
-    
-    # Option 2: Using underlying Paramiko connection
-    # with sftp_hook.get_conn() as sftp:
-    #     sftp.get(REMOTE_PATH, LOCAL_PATH)
-    
-    print(f"Downloaded {REMOTE_PATH} to {LOCAL_PATH}")
+    # Ensure local directory exists
+    os.makedirs(os.path.dirname(LOCAL_PATH), exist_ok=True)
+
+    hook = SFTPHook(ftp_conn_id=FTP_CONN_ID)
+    sftp_client = hook.get_conn()  # returns paramiko.SFTPClient
+
+    try:
+        sftp_client.get(REMOTE_PATH, LOCAL_PATH)
+        print(f"Downloaded {REMOTE_PATH} to {LOCAL_PATH}")
+    except Exception as e:
+        print(f"Error downloading file: {e}")
+        raise
+    finally:
+        sftp_client.close()
 
 
 with DAG(

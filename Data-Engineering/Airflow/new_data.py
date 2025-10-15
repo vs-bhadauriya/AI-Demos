@@ -16,7 +16,7 @@ FTP_CONN_ID = 'sftp_custom'
 
 # Remote and local paths
 REMOTE_PATH = '/data/upload/sample.txt'
-LOCAL_PATH = '/tmp/sample.txt'
+LOCAL_PATH = '/mnt/shared/data/sample.txt'
 
 
 def download_file_from_sftp():

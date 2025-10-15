@@ -21,10 +21,20 @@ LOCAL_PATH = '/mnt/shared/data/sample.txt'
 
 def download_file_from_sftp():
     """
-    Downloads a file from the SFTP server to local filesystem.
+    Downloads a file from SFTP to local path using username/password authentication.
     """
-    sftp = SFTPHook(ftp_conn_id=FTP_CONN_ID)
-    sftp.get(remote_path=REMOTE_PATH, local_path=LOCAL_PATH)
+    sftp_hook = SFTPHook(ftp_conn_id=FTP_CONN_ID)
+    
+    # Option 1: Using SFTPHook method
+    sftp_hook.get_file(
+        remote_full_path=REMOTE_PATH,
+        local_full_path=LOCAL_PATH
+    )
+    
+    # Option 2: Using underlying Paramiko connection
+    # with sftp_hook.get_conn() as sftp:
+    #     sftp.get(REMOTE_PATH, LOCAL_PATH)
+    
     print(f"Downloaded {REMOTE_PATH} to {LOCAL_PATH}")
 
 
